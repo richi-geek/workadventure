@@ -1,7 +1,7 @@
 # Network block
 
-variable "default_cidr" {
-  description = "The default CIDR block."
+variable "anyone_cidr" {
+  description = "The anyone CIDR block."
   type        = string
   default     = "0.0.0.0/0"
 }
@@ -24,6 +24,16 @@ variable "azs" {
 }
 
 # Compute block
+
+# variable "aws_s3_backend_bucket" {
+#   description = "The bucket name of AWS S3 remote backend container"
+#   type        = string
+# }
+
+# variable "aws_s3_backend_key" {
+#   description = "The key file of AWS S3 remote state file"
+#   type        = string
+# }
 
 variable "aws_region" {
   description = "The region of AWS"

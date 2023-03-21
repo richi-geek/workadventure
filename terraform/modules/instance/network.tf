@@ -21,7 +21,7 @@ resource "aws_internet_gateway" "this" {
 
 resource "aws_route" "vpc_igw" {
   route_table_id         = aws_vpc.this.default_route_table_id
-  destination_cidr_block = var.default_cidr
+  destination_cidr_block = var.anyone_cidr
   gateway_id             = aws_internet_gateway.this.id
 
 }
@@ -38,7 +38,7 @@ resource "aws_default_security_group" "this" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = [var.default_cidr]
+    cidr_blocks = [var.anyone_cidr]
 
   }
 
@@ -46,7 +46,7 @@ resource "aws_default_security_group" "this" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = [var.default_cidr]
+    cidr_blocks = [var.anyone_cidr]
 
   }
 
