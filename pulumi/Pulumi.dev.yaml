@@ -1,0 +1,5 @@
+config:
+  aws:region: eu-west-3
+  pulumi-rici:publicKey: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKH0xK5oup7Sr0pLwYU4FOhV3pGT3r2TY6lkWHdwSBru pulumi
+  pulumi-rici:subnetCIDR: 10.0.1.0/24
+  pulumi-rici:vpcCIDR: 10.0.0.0/16
