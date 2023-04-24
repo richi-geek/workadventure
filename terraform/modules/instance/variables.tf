@@ -8,11 +8,6 @@ variable "ami" {
   type        = string
 }
 
-variable "keyname" {
-  description = "SSH key name for the EC2 instance"
-  type        = string
-}
-
 variable "public_key" {
   description = "SSH public key for the EC2 instance"
   type        = string
@@ -36,6 +31,7 @@ variable "user_data" {
 
 variable "default_tags" {
   default = {
-    Name = "rici-tf"
+    Name = "RICI - TF"
+    Owner = "RICI"
   }
 }

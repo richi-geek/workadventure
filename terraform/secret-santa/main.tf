@@ -20,13 +20,13 @@ provider "aws" {
 }
 
 module "network" {
-  source = "./modules/network"
+  source = "../modules/network"
 
   azs = "eu-west-3a"
 }
 
 module "backend" {
-  source = "./modules/instance"
+  source = "../modules/instance"
 
   instance_type      = "t2.micro"
   ami                = "ami-05e8e219ac7e82eba"
@@ -39,7 +39,7 @@ module "backend" {
 }
 
 module "frontend" {
-  source = "./modules/instance"
+  source = "../modules/instance"
 
   instance_type      = "t2.micro"
   ami                = "ami-05e8e219ac7e82eba"

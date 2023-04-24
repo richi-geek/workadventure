@@ -23,6 +23,7 @@ variable "azs" {
 
 variable "default_tags" {
   default = {
-    Name = "rici-tf"
+    Name = "RICI - TF"
+    Owner = "RICI"
   }
 }
