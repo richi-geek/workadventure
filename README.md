@@ -1,3 +1,3 @@
-# Stage WorkAdventire
+# Stage WorkAdventure
 
 Liste des ADRs : `docs/decisions`
