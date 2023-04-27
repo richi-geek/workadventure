@@ -1,7 +1,7 @@
 terraform {
   backend "s3" {
-    bucket  = "rici-tf-state"
-    key     = "workadventure/terraform.state"
+    bucket  = "ocho-ninja-state-backend"
+    key     = "RICI/38-workadventure/terraform.state"
     region  = "eu-west-3"
     encrypt = true
   }
@@ -22,23 +22,25 @@ provider "aws" {
 module "network" {
   source = "../modules/network"
 
-  azs = "eu-west-3a"
+  azs            = "eu-west-3a"
 }
 
-module "workadventure" {
+module "public_instance" {
+  count = 2
   source = "../modules/instance"
 
   instance_type      = "t3.large"
   ami                = "ami-05e8e219ac7e82eba"
-  keyname            = "rici-ssh-WA"
-  public_key         = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO8U7V6a0/cPtS70bjqcJ7zBVaDjJlWHx0wqpjBJiHQR terraform"
-  subnet_id          = module.network.subnet_id
+  subnet_id          = module.network.public_subnet_id
   security_group_ids = [module.network.security_group_id]
+  default_tags = {
+    Name = "Server ${count.index}"
+    Owner = "RICI"
+  }
+}
 
-  user_data = file("./docker-compose.sh")
+output "public_instance" {
+  value = module.public_instance
 }
 
 
-output "workadventure" {
-  value = module.workadventure
-}

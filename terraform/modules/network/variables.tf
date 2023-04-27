@@ -10,10 +10,16 @@ variable "vpc_cidr" {
   default     = "172.16.0.0/16"
 }
 
-variable "subnet_cidr" {
-  description = "The CIDR block for the subnet."
+variable "public_subnet_cidr" {
+  description = "The CIDR block for the public subnet."
   type        = string
   default     = "172.16.10.0/24"
+}
+
+variable "private_subnet_cidr" {
+  description = "The CIDR block for the private subnet."
+  type        = string
+  default     = "172.16.100.0/24"
 }
 
 variable "azs" {
@@ -23,7 +29,7 @@ variable "azs" {
 
 variable "default_tags" {
   default = {
-    Name = "RICI - TF"
+    Name  = "RICI - TF"
     Owner = "RICI"
   }
 }
