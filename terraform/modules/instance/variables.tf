@@ -8,11 +8,6 @@ variable "ami" {
   type        = string
 }
 
-variable "public_key" {
-  description = "SSH public key for the EC2 instance"
-  type        = string
-}
-
 variable "subnet_id" {
   description = "Subnet ID for the EC2 instance"
   type        = string
@@ -31,7 +26,7 @@ variable "user_data" {
 
 variable "default_tags" {
   default = {
-    Name = "RICI - TF"
+    Name  = "RICI - TF"
     Owner = "RICI"
   }
 }
