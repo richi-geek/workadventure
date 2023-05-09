@@ -1,0 +1,17 @@
+version: "3.6"
+services:
+  icon:
+    image: matthiasluedtke/iconserver:v3.13.0
+    ports:
+      - "8080:8080"
+    # labels:
+    #   traefik.enable: "true"
+    #   traefik.http.routers.icon.rule: "Host(`${ICON_HOST}`)"
+    #   traefik.http.routers.icon.entryPoints: "web"
+    #   traefik.http.services.icon.loadbalancer.server.port: "8080"
+    #   traefik.http.routers.icon-ssl.rule: "Host(`${ICON_HOST}`)"
+    #   traefik.http.routers.icon-ssl.entryPoints: "websecure"
+    #   traefik.http.routers.icon-ssl.service: "icon"
+    #   traefik.http.routers.icon-ssl.tls: "true"
+    #   traefik.http.routers.icon-ssl.tls.certresolver: "myresolver"
+    

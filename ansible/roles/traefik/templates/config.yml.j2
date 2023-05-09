@@ -1,0 +1,122 @@
+http:
+  routers:
+    play:
+      entryPoints:
+        - "https"
+      rule: "Host(`play.workadventure.aws.ocho.ninja`)"
+      middlewares:
+        - https-redirect
+      tls: {}
+      service: play
+
+    chat: 
+      entryPoints:
+        - "https"
+      rule: "Host(`chat.workadventure.aws.ocho.ninja`)"
+      middlewares:
+        - https-redirect
+      tls: {}
+      service: chat
+    
+    api: 
+      entryPoints:
+        - "https"
+      rule: "Host(`api.workadventure.aws.ocho.ninja`)"
+      middlewares:
+        - https-redirect
+      tls: {}
+      service: api
+
+    uploader: 
+      entryPoints:
+        - "https"
+      rule: "Host(`uploader.workadventure.aws.ocho.ninja`)"
+      middlewares:
+        - https-redirect
+      tls: {}
+      service: uploader
+
+    icon: 
+      entryPoints:
+        - "https"
+      rule: "Host(`icon.workadventure.aws.ocho.ninja`)"
+      middlewares:
+        - https-redirect
+      tls: {}
+      service: icon
+
+    ejabberd: 
+      entryPoints:
+        - "https"
+      rule: "Host(`ejabberd.workadventure.aws.ocho.ninja`)"
+      middlewares:
+        - https-redirect
+      tls: {}
+      service: ejabberd
+
+    map-storage: 
+      entryPoints:
+        - "https"
+      rule: "Host(`map-storage.workadventure.aws.ocho.ninja`)"
+      middlewares:
+        - https-redirect
+      tls: {}
+      service: map-storage
+    
+    redis: 
+      entryPoints:
+        - "https"
+      rule: "Host(`redis.workadventure.aws.ocho.ninja`)"
+      middlewares:
+        - https-redirect
+      tls: {}
+      service: redis
+
+
+  services:
+    play:
+      loadBalancer:
+        servers:
+          - url: {{ play_url }}
+        passHostHeader: true
+    chat:
+      loadBalancer:
+        servers:
+          - url: {{ chat_url }}
+        passHostHeader: true
+    api:
+      loadBalancer:
+        servers:
+          - url: {{ api_url }}
+        passHostHeader: true
+    uploader:
+      loadBalancer:
+        servers:
+          - url: {{ uploader_url }}
+        passHostHeader: true
+    icon:
+      loadBalancer:
+        servers:
+          - url: {{ icon_url }}
+        passHostHeader: true
+    ejabberd:
+      loadBalancer:
+        servers:
+          - url: {{ ejabberd_url }}
+        passHostHeader: true
+    map-storage:
+      loadBalancer:
+        servers:
+          - url: {{ map_storage_url }}
+        passHostHeader: true
+    redis:
+      loadBalancer:
+        servers:
+          - url: {{ redis_url }}
+        passHostHeader: true
+
+  middlewares:
+    https-redirect:
+      redirectScheme:
+        scheme: https
+        permanent: true

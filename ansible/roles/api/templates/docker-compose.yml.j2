@@ -1,0 +1,47 @@
+version: "3.6"
+services:
+  back:
+    image: thecodingmachine/workadventure-back:${VERSION}
+    # added
+    ports:
+      - "8080:8080"
+    environment:
+      - PLAY_URL=https://${FRONT_HOST}
+      - SECRET_JITSI_KEY
+      - ENABLE_FEATURE_MAP_EDITOR
+      - SECRET_KEY
+      #- ADMIN_API_TOKEN
+      #- ADMIN_API_URL
+      - TURN_SERVER
+      - TURN_USER
+      - TURN_PASSWORD
+      - TURN_STATIC_AUTH_SECRET
+      - STUN_SERVER
+      - JITSI_URL
+      - JITSI_ISS
+      - BBB_URL
+      - BBB_SECRET
+      - MAX_PER_GROUP
+      - STORE_VARIABLES_FOR_LOCAL_MAPS
+      - REDIS_HOST=redis
+      - PROMETHEUS_AUTHORIZATION_TOKEN
+      - MAP_STORAGE_URL=map-storage:50053
+      - PUBLIC_MAP_STORAGE_URL=https://${MAP_STORAGE_HOST}
+      - PLAYER_VARIABLES_MAX_TTL
+      - EJABBERD_API_URI
+      - EJABBERD_DOMAIN=${EJABBERD_DOMAIN}
+      - EJABBERD_USER=${EJABBERD_USER}
+      - EJABBERD_PASSWORD=${EJABBERD_PASSWORD}
+      - ENABLE_CHAT
+      - ENABLE_CHAT_UPLOAD
+    # labels:
+    #   traefik.enable: "true"
+    #   traefik.http.routers.back.rule: "Host(`${BACK_HOST}`)"
+    #   traefik.http.routers.back.entryPoints: "web"
+    #   traefik.http.services.back.loadbalancer.server.port: "8080"
+    #   traefik.http.routers.back-ssl.rule: "Host(`${BACK_HOST}`)"
+    #   traefik.http.routers.back-ssl.entryPoints: "websecure"
+    #   traefik.http.routers.back-ssl.service: "back"
+    #   traefik.http.routers.back-ssl.tls: "true"
+    #   traefik.http.routers.back-ssl.tls.certresolver: "myresolver"
+    restart: ${RESTART_POLICY}

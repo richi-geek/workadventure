@@ -3,7 +3,7 @@ resource "aws_instance" "app_server" {
   instance_type   = var.instance_type
   subnet_id       = var.subnet_id
   key_name        = data.aws_key_pair.this.key_name
-  security_groups = var.security_group_ids
+  vpc_security_group_ids = var.security_group_ids
 
   user_data = var.user_data
   tags      = var.default_tags

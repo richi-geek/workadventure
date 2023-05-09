@@ -1,0 +1,54 @@
+---
+- name: Create /etc/traefik/data directory
+  file:
+    path: /etc/traefik/data
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Create acme.json file
+  copy:
+    content: ""
+    dest: /etc/traefik/data/acme.json
+    force: false
+    owner: root
+    group: root
+    mode: 0600
+
+- name: Copy docker-compose.yml
+  template:
+    src: docker-compose.yml.j2
+    dest: /etc/traefik/docker-compose.yml
+    owner: root
+    group: root
+    mode: 0640
+
+- name: Copy .env
+  template:
+    src: .env.j2
+    dest: /etc/traefik/.env
+    owner: root
+    group: root
+    mode: 0640
+
+- name: Copy config.yml
+  template:
+    src: config.yml.j2
+    dest: /etc/traefik/data/config.yml
+    owner: root
+    group: root
+    mode: 0640
+
+- name: Copy traefik.yml
+  template:
+    src: traefik.yml.j2
+    dest: /etc/traefik/data/traefik.yml
+    owner: root
+    group: root
+    mode: 0640
+
+- name: Create and start services from docker-compose
+  community.docker.docker_compose:
+    project_src: /etc/traefik
+  register: output

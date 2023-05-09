@@ -1,0 +1,18 @@
+version: "3.6"
+services:
+  map-storage:
+    image: thecodingmachine/workadventure-map-storage:${VERSION}
+    ports:
+      - "3000:3000"
+    environment:
+      API_URL: back:50051
+      PROMETHEUS_AUTHORIZATION_TOKEN: "$PROMETHEUS_AUTHORIZATION_TOKEN"
+      AUTHENTICATION_STRATEGY: "$MAP_STORAGE_AUTHENTICATION_STRATEGY"
+      AUTHENTICATION_USER: "$MAP_STORAGE_AUTHENTICATION_USER"
+      AUTHENTICATION_PASSWORD: "$MAP_STORAGE_AUTHENTICATION_PASSWORD"
+      AUTHENTICATION_TOKEN: "$MAP_STORAGE_AUTHENTICATION_TOKEN"
+    volumes:
+      - map-storage-data:/maps
+
+volumes:
+  map-storage-data:

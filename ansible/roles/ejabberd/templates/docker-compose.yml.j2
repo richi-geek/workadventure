@@ -1,0 +1,14 @@
+version: "3.6"
+services:
+  ejabberd:
+    image: workadventure/ejabberd:v1
+    ports:
+      - "5443:5443"
+    environment:
+      - CTL_ON_CREATE=register ${EJABBERD_USER} ${EJABBERD_DOMAIN} ${EJABBERD_PASSWORD}
+      - JWT_SECRET=${EJABBERD_JWT_SECRET}
+      - EJABBERD_DOMAIN=${EJABBERD_DOMAIN}
+      - EJABBERD_USER=${EJABBERD_USER}
+      - EJABBERD_PASSWORD=${EJABBERD_PASSWORD}
+    volumes:
+      - ./ejabberd.template.yml:/opt/ejabberd/conf/ejabberd.template.yml
