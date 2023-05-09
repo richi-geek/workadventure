@@ -1,0 +1,29 @@
+---
+- name: Create /etc/workadventure directory
+  file:
+    path: /etc/workadventure
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Copy docker-compose file
+  template:
+    src: docker-compose.yml.j2
+    dest: /etc/workadventure/docker-compose.yml
+    owner: root
+    group: root
+    mode: 0640
+
+- name: Copy .env file
+  template:
+    src: .env.j2
+    dest: /etc/workadventure/.env
+    owner: root
+    group: root
+    mode: 0640
+
+- name: Create and start services from docker-compose
+  community.docker.docker_compose:
+    project_src: /etc/workadventure
+  register: output

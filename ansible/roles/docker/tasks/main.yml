@@ -1,0 +1,15 @@
+---
+- name: Run apt update if the last one is more than one day
+  apt:
+    update_cache: true
+    cache_valid_time: 86400
+
+- name: Ensure git, make, docker.io & docker-compose are present
+  apt:
+    name:
+      - git
+      - make
+      - docker.io
+      - docker-compose
+    state: present
+    

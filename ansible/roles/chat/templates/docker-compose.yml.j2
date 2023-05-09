@@ -1,0 +1,26 @@
+version: "3.6"
+services:
+  chat:
+    image: thecodingmachine/workadventure-chat:${VERSION}
+    ports:
+      - "80:80"
+    environment:
+      - PUSHER_URL=https://${PUSHER_HOST}
+      - UPLOADER_URL=https://${UPLOADER_HOST}
+      - EMBEDLY_KEY=${EMBEDLY_KEY}
+      - ENABLE_CHAT_UPLOAD=${ENABLE_CHAT_UPLOAD}
+      - EJABBERD_DOMAIN=${EJABBERD_DOMAIN}
+      - EJABBERD_WS_URI=${EJABBERD_WS_URI}
+    # labels:
+    #   traefik.enable: "true"
+    #   traefik.http.routers.chat.rule: "Host(`${CHAT_HOST}`)"
+    #   traefik.http.routers.chat.entryPoints: "web"
+    #   traefik.http.services.chat.loadbalancer.server.port: "80"
+    #   traefik.http.routers.chat-ssl.rule: "Host(`${CHAT_HOST}`)"
+    #   traefik.http.routers.chat-ssl.entryPoints: "websecure"
+    #   traefik.http.routers.chat-ssl.service: "chat"
+    #   traefik.http.routers.chat-ssl.tls: "true"
+    #   traefik.http.routers.chat-ssl.tls.certresolver: "myresolver"
+    restart: ${RESTART_POLICY}
+
+  

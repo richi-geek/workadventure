@@ -1,0 +1,59 @@
+version: "3.6"
+services:
+  play:
+    image: thecodingmachine/workadventure-play:${VERSION}
+    ports:
+      - "3000:3000"
+    environment:
+      - DEBUG_MODE
+      - JITSI_URL
+      - JITSI_PRIVATE_MODE
+      - ENABLE_FEATURE_MAP_EDITOR
+      - ENABLE_MAP_EDITOR_AREAS_TOOL
+      - PUSHER_URL=https://${PUSHER_HOST}
+      - ICON_URL=https://${ICON_HOST}
+      - TURN_SERVER
+      - TURN_USER
+      - TURN_PASSWORD
+      - TURN_STATIC_AUTH_SECRET
+      - STUN_SERVER
+      - SKIP_RENDER_OPTIMIZATIONS
+      - MAX_PER_GROUP
+      - MAX_USERNAME_LENGTH
+      - DISABLE_ANONYMOUS
+      - DISABLE_NOTIFICATIONS
+      - SECRET_KEY
+      - API_URL
+      - FRONT_URL=https://${FRONT_HOST}
+      - CHAT_URL=https://${CHAT_HOST}
+      - PUBLIC_MAP_STORAGE_URL=https://${MAP_STORAGE_HOST}
+      - START_ROOM_URL
+      - OPID_PROMPT=login
+      - OPID_WOKA_NAME_POLICY
+      - ENABLE_CHAT
+      - ENABLE_CHAT_UPLOAD
+      - ENABLE_CHAT_ONLINE_LIST
+      - ENABLE_CHAT_DISCONNECTED_LIST
+      - UPLOADER_URL=https://${UPLOADER_HOST}
+      # Only used if you set up a JWT authentication mechanism in Ejabberd
+      - EJABBERD_JWT_SECRET=${EJABBERD_JWT_SECRET}
+      - EJABBERD_DOMAIN=${EJABBERD_DOMAIN}
+      # Report issues menu
+      - ENABLE_REPORT_ISSUES_MENU=${ENABLE_REPORT_ISSUES_MENU}
+      - REPORT_ISSUES_URL=${REPORT_ISSUES_URL}
+    # labels:
+    #   traefik.enable: "true"
+    #   traefik.http.routers.play.rule: "Host(`${FRONT_HOST}`)"
+    #   traefik.http.routers.play.entryPoints: "web"
+    #   traefik.http.services.play.loadbalancer.server.port: "3000"
+    #   # Test
+    #   traefik.http.routers.play.middlewares: "middleware-redirect-https@docker"
+    #   traefik.http.routers.play-ssl.tls.domains[0].main: "*.${FRONT_HOST}"
+
+    #   # SSL
+    #   traefik.http.routers.play-ssl.rule: "Host(`${FRONT_HOST}`)"
+    #   traefik.http.routers.play-ssl.entryPoints: "websecure"
+    #   traefik.http.routers.play-ssl.tls: "true"
+    #   traefik.http.routers.play-ssl.tls.certresolver: "myresolver"
+    #   traefik.http.routers.play-ssl.service: "play"
+    restart: ${RESTART_POLICY}

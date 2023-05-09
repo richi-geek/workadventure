@@ -1,0 +1,50 @@
+---
+- hosts: all
+  become: true
+  roles:
+    - docker
+
+- hosts: traefik
+  become: true
+  roles: 
+    - traefik
+
+- hosts: play
+  become: true
+  roles: 
+    - play
+
+- hosts: chat
+  become: true
+  roles: 
+    - chat
+
+- hosts: api
+  become: true
+  roles: 
+    - api
+
+- hosts: uploader
+  become: true
+  roles: 
+    - uploader
+
+- hosts: icon
+  become: true
+  roles: 
+    - icon
+
+- hosts: redis
+  become: true
+  roles: 
+    - redis
+
+- hosts: ejabberd
+  become: true
+  roles: 
+    - ejabberd
+
+- hosts: maps
+  become: true
+  roles: 
+    - maps
