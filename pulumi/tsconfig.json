@@ -10,7 +10,18 @@
         "pretty": true,
         "noFallthroughCasesInSwitch": true,
         "noImplicitReturns": true,
-        "forceConsistentCasingInFileNames": true
+        "forceConsistentCasingInFileNames": true,
+        "types": ["chai", "node", "mocha"],
+        "typeRoots": ["./types", "./node_modules/@types"]
+
+
+        // "baseUrl": ".",
+        // "paths": {
+        //     "@domain/*": ["./domain/*"],
+        //     "@repository/*": ["./repository/*"],
+        //     "@usecases/*": ["./usecases/*"]
+        // }
+          
     },
     "files": [
         "index.ts"
