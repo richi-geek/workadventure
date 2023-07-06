@@ -5,14 +5,30 @@ services:
     ports:
       - "3000:3000"
     environment:
-      API_URL: back:50051
-      PROMETHEUS_AUTHORIZATION_TOKEN: "$PROMETHEUS_AUTHORIZATION_TOKEN"
-      AUTHENTICATION_STRATEGY: "$MAP_STORAGE_AUTHENTICATION_STRATEGY"
-      AUTHENTICATION_USER: "$MAP_STORAGE_AUTHENTICATION_USER"
-      AUTHENTICATION_PASSWORD: "$MAP_STORAGE_AUTHENTICATION_PASSWORD"
-      AUTHENTICATION_TOKEN: "$MAP_STORAGE_AUTHENTICATION_TOKEN"
+      # API_URL: back:50051
+      # PROMETHEUS_AUTHORIZATION_TOKEN: "$PROMETHEUS_AUTHORIZATION_TOKEN"
+      AUTHENTICATION_STRATEGY: "$MAP_STORAGE_AUTHENTICATION_STRATEGY" # Basic
+      AUTHENTICATION_USER: "$MAP_STORAGE_AUTHENTICATION_USER" # RICI
+      AUTHENTICATION_PASSWORD: "$MAP_STORAGE_AUTHENTICATION_PASSWORD" # ricirici
+      # AUTHENTICATION_TOKEN: "$MAP_STORAGE_AUTHENTICATION_TOKEN"
     volumes:
       - map-storage-data:/maps
 
 volumes:
   map-storage-data:
+
+### Recuperado de github el 26/06/23 : (teniamos que agregar a la mano las variables auth ?)
+map-storage:
+    image: thecodingmachine/workadventure-map-storage:${VERSION}
+    environment:
+      PROMETHEUS_AUTHORIZATION_TOKEN: "$PROMETHEUS_AUTHORIZATION_TOKEN"
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.map-storage.rule: "Host(`${MAP_STORAGE_HOST}`)"
+      traefik.http.routers.map-storage.entryPoints: "web"
+      traefik.http.services.map-storage.loadbalancer.server.port: "3000"
+      traefik.http.routers.map-storage-ssl.rule: "Host(`${MAP_STORAGE_HOST}`)"
+      traefik.http.routers.map-storage-ssl.entryPoints: "websecure"
+      traefik.http.routers.map-storage-ssl.service: "map-storage"
+      traefik.http.routers.map-storage-ssl.tls: "true"
+      traefik.http.routers.map-storage-ssl.tls.certresolver: "myresolver"

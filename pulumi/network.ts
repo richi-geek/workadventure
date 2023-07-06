@@ -54,10 +54,10 @@ export class Network {
                 Owner: owner
             }    
         });
-        this.addSubnet(subnetPublicA);
+        this.addSubnet(subnetPublicA); // 0
         this.addSubnet(subnetPublicB);
         this.addSubnet(subnetPrivateA);
-        this.addSubnet(subnetPrivateB);
+        this.addSubnet(subnetPrivateB); // 3
     
         
         const gateway = new aws.ec2.InternetGateway(name, {

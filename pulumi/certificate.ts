@@ -1,16 +1,19 @@
 import * as aws from "@pulumi/aws";
 
 export function CreateCertificate(): aws.acm.CertificateValidation {
+    // Une seule fois
+    const zoneNinja = aws.route53.getZone({
+        name: "aws.ocho.ninja",
+        privateZone: false,
+    });
 
+    // A repeter pour chaque ceertificate a creer ? ou uniquement pour le root url ?
     const whoCertificate = new aws.acm.Certificate("whoCertificate", {
         domainName: "who.workadventure.aws.ocho.ninja",
         validationMethod: "DNS",
     });
     
-    const zoneNinja = aws.route53.getZone({
-        name: "aws.ocho.ninja",
-        privateZone: false,
-    });
+    
     
     const certValidation = new aws.route53.Record("certValidation", {
         name: whoCertificate.domainValidationOptions[0].resourceRecordName,

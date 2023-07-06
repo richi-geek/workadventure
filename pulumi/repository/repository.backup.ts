@@ -1,27 +1,4 @@
-// TODO: faire un test avec une focntion avec un if avant du for, et un sans le for 
-        // (à mon avis), il ne devrait pas executer le for, donc il n'y a pas besoin du if
 
-        // TODO: normaliser un peu le code (point-virgules, variables et methodes non utilisés, ...)
-
-/**
- * je dois vous laisser
-merci pour la présentation
-voici mes quizz:
-Je me pose la question sur la complexité organisationnelle du code ?
-Et la lisibilité du modèle moins déclaratif
-
-Je pousse la démarche plus loin : est ce que tu pourrais faire la même chose avec Azure ou GCP en ne changeant que la couche 4 ?
-
-Est ce qu’il est possible d’avoir une abstraction des points/concepts communs entre les clouds ? Tous ont leur spécificités
-
-Dans la couche Model = VPC c’est déjà un concepte AWS
-
-Est ce que tu a pu comparer du code TF vs Pulumi ?
-
-contexte
-explicabilité vs causalité (3 niveaux)
-
- */
 
 
 /**

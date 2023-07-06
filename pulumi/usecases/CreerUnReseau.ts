@@ -1,14 +1,19 @@
-import { Route, RouteTable, TargetType } from "../domain/vpc/RouteTable";
+import { RouteTable, TargetType } from "../domain/vpc/RouteTable";
 import { NatGateway } from "../domain/vpc/NatGateway";
 import { Eip } from "../domain/vpc/Eip";
 import { InternetGateway } from "../domain/vpc/InternetGateway";
-import { AvailabilityZone, Subnet } from "../domain/vpc/subnet";
+import { Subnet } from "../domain/vpc/subnet";
 import { Vpc } from "../domain/vpc/vpc";
 import { SecurityGroup, Rule } from "../domain/vpc/SecurityGroup";
-import { VpcRepository } from "../repository/VpcRepository";
+import { IVpcRepository } from "../repository/IVpcRepository";
 
-export function CreerUnReseau(vpcRepository: VpcRepository) {
-
+/**
+ * Crée un réseau avec un VPC, 2 subnets publics, 2 subnetss privés, un internet gateway, un NAT,
+ * un security group et deux tables de routage (une publique et une privée).
+ * @param vpcRepository le repository à utiliser pour la création du réseau
+ * @returns un objet métier VPC
+ */
+export function CreerUnReseau(vpcRepository: IVpcRepository): Vpc {
     const vpc: Vpc = new Vpc("vpc-workadventure", "10.0.0.0/16");
     const subnetPublicA: Subnet = new Subnet("public-a", true,  "10.0.0.0/24", "eu-west-3a");
     const subnetPublicB: Subnet = new Subnet("public-b", true,  "10.0.1.0/24", "eu-west-3b");
@@ -81,5 +86,5 @@ export function CreerUnReseau(vpcRepository: VpcRepository) {
     vpc.addSecurityGroup(defaultSecurityGroup);
 
     vpcRepository.deploy(vpc);
-
+    return vpc;
 }

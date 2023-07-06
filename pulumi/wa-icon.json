@@ -1,0 +1,23 @@
+[
+    {
+        "name": "icon",
+        "image": "matthiasluedtke/iconserver:v3.13.0",
+        "essential": true,
+        "portMappings": [{
+            "containerPort": 8080,
+            "hostPort": 8080
+        }],
+        "dockerLabels": {
+            "traefik.http.routers.icon.rule": "Host(`icon.workadventure.aws.ocho.ninja`)",
+            "traefik.enable": "true"
+        },
+        "logConfiguration": {
+            "logDriver": "awslogs",
+            "options": {
+                "awslogs-group": "/ecs/WorkAdventure",
+                "awslogs-region": "eu-west-3",
+                "awslogs-stream-prefix": "icon"
+            }
+        }
+    }
+]

@@ -4,9 +4,11 @@ services:
     image: redis:6
     ports:
       - "6379:6379"
-    command: redis-server --bind 0.0.0.0
-    volumes:
+    command: redis-server --bind 0.0.0.0 # a ajouter ?
+    volumes: # a ajouter ?
       - redisdata:/data
       
 volumes:
   redisdata:
+
+  # Amazon Elasticache Redis ?

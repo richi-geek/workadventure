@@ -1,0 +1,37 @@
+[
+    {
+        "name": "map-storage",
+        "image": "thecodingmachine/workadventure-map-storage:v1.15.12",
+        "essential": true,
+        "portMappings": [{
+            "containerPort": 3000,
+            "hostPort": 3000
+        }],
+        "dockerLabels": {
+            "traefik.http.routers.map-storage.rule": "Host(`map-storage.workadventure.aws.ocho.ninja`)",
+            "traefik.enable": "true"
+        },
+        "logConfiguration": {
+            "logDriver": "awslogs",
+            "options": {
+                "awslogs-group": "/ecs/WorkAdventure",
+                "awslogs-region": "eu-west-3",
+                "awslogs-stream-prefix": "map-storage"
+            }
+        },
+        "environment": [
+            {
+                "name": "AUTHENTICATION_STRATEGY",
+                "value":  "Basic" 
+            },
+            {
+                "name": "AUTHENTICATION_USER",
+                "value":  "RICI" 
+            },
+            {
+                "name": "AUTHENTICATION_PASSWORD",
+                "value":  "ricirici" 
+            }
+        ]
+    }
+]
