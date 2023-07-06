@@ -1,6 +1,6 @@
 import * as aws from "@pulumi/aws";
 import { Vpc } from "../domain/vpc/vpc";
-import { VpcRepository } from "./VpcRepository";
+import { IVpcRepository } from "./IVpcRepository";
 import * as variables from "../variables";
 import { Association, Route, RouteTable, TargetType } from "../domain/vpc/RouteTable";
 import { Eip } from "../domain/vpc/Eip";
@@ -8,27 +8,55 @@ import { Subnet } from "../domain/vpc/subnet";
 import { NatGateway } from "../domain/vpc/NatGateway";
 import { SecurityGroup } from "../domain/vpc/SecurityGroup";
 
-export class AwsVpcRepository implements VpcRepository{
-    private resourceMap: Map<string, any>;
+// type AwsNetwork = {
+//     vpc: aws.ec2.Vpc,
+//     subnets: aws.ec2.Subnet[]
+// }
 
-    constructor() {
-        this.resourceMap = new Map<string, any>();
-    }
+export class AwsVpcRepository implements IVpcRepository{
+    // On a un resourceMap privé à cette classe et qui va garder tous les resources déployés
+    /** si un autre repository a besoin de ces resources :
+     * 1. on envoie comme parametre le repository dans le use-case:
+     *      ex. dans le use-case "DeployerWorkAdventure", on a besoin des subnets et vpc, donc
+     *      ...
+     *      loadBalancerRepository.deploy(vpcRepository, loadBalancer, traefikTargetGroup, listener)
+     *                                     repository   <------------------------------------------->
+     *                                      dependant       objets metier à deployer dans le cloud
+     * 
+     * 2. à l'interieur du repository, on appelle la methode "GetDeployedResource" : 
+     *      ex. :
+     *      const deployedVpc = vpcRepository.GetDeployedResource("vpc-workadventure")
+     *      ...
+     *      const deployedTruc = new aws.Resource(nom, {
+     *          vpcId: deployedVpc.id
+     *      })
+     * 
+     * Cela implique qu'on aura besoin de recevoir le vpcRepository comme parametre dans l'use-case, donc c'est l'index
+     * qui va envoyer ce parametre.
+     * 
+     * --> bien documenter les uses cases, avec les parametres (et retours ?)
+     * */ 
+
+    private vpcResourceMap: Map<string, any>;
+    constructor() { this.vpcResourceMap = new Map<string, any>(); }
 
     private AddResource(resourceName: string, resourceType: any): void {
-        this.resourceMap.set(resourceName, resourceType);
+        this.vpcResourceMap.set(resourceName, resourceType);
     }
 
-    private GetDeployedResource(resourceName: string): any {
+    public GetDeployedResource(resourceName: string): any {
         // gerer les exceptions, par exemple, s'il n'existe pas une resource avec ce nom (resourceMap.has())
-        return this.resourceMap.get(resourceName);
+        return this.vpcResourceMap.get(resourceName);
     }
 
     private CreateVpc(vpc: Vpc): void {
         let vpcDeployed = new aws.ec2.Vpc(vpc.getName(), {
             cidrBlock: vpc.getCidrBlock(),
-            tags: variables.defaultTags
+            enableDnsHostnames: true,
+            enableDnsSupport: true,
+            tags: variables.GetTagWithResourceName(vpc.getName())
         });
+
         this.AddResource(vpc.getName(), vpcDeployed);
     }
 
@@ -36,7 +64,7 @@ export class AwsVpcRepository implements VpcRepository{
         let vpcDeployed = this.GetDeployedResource(vpc.getName());
         let internetGatewayDeployed = new aws.ec2.InternetGateway(vpc.getInternetGateway()!.getName(), {
             vpcId: vpcDeployed.id,
-            tags: variables.defaultTags
+            tags: variables.GetTagWithResourceName(vpc.getInternetGateway()!.getName())
         });
         this.AddResource(vpc.getInternetGateway()!.getName(), internetGatewayDeployed);
     }
@@ -44,7 +72,7 @@ export class AwsVpcRepository implements VpcRepository{
     private CreateEip(eip: Eip): void {
         let eipDeployed = new aws.ec2.Eip(eip.getName(), {
             vpc: eip.IsInVpc(),
-            tags: variables.defaultTags
+            tags: variables.GetTagWithResourceName(eip.getName())
         });
         this.AddResource(eip.getName(), eipDeployed);
     }
@@ -64,7 +92,7 @@ export class AwsVpcRepository implements VpcRepository{
                 subnetId: subnetDeployed.id,
                 connectivityType: "public",
                 allocationId: eipDeployed.id,
-                tags: variables.defaultTags
+                tags: variables.GetTagWithResourceName(nat.getName())
             });
             this.AddResource(nat.getName(), natDeployed);
         }
@@ -72,7 +100,7 @@ export class AwsVpcRepository implements VpcRepository{
             let natDeployed = new aws.ec2.NatGateway(nat.getName(), {
                 subnetId: subnetDeployed.id,
                 connectivityType: "private",
-                tags: variables.defaultTags
+                tags: variables.GetTagWithResourceName(nat.getName())
             });
             this.AddResource(nat.getName(), natDeployed);
         }
@@ -84,7 +112,7 @@ export class AwsVpcRepository implements VpcRepository{
             vpcId: vpcDeployed.id,
             cidrBlock: subnet.getCidrBlock(),
             availabilityZone: subnet.getAvailabilityZone(),
-            tags: variables.defaultTags
+            tags: variables.GetTagWithResourceName(subnet.getName())
         });
         this.AddResource(subnet.getName(), subnetDeployed);
 
@@ -138,6 +166,7 @@ export class AwsVpcRepository implements VpcRepository{
         let vpcDeployed = this.GetDeployedResource(vpc.getName());
         let routeTableDeployed = new aws.ec2.RouteTable(routeTable.getName(), {
             vpcId: vpcDeployed.id,
+            tags: variables.GetTagWithResourceName(routeTable.getName())
         });
         this.AddResource(routeTable.getName(), routeTableDeployed);
 
@@ -162,9 +191,11 @@ export class AwsVpcRepository implements VpcRepository{
             vpcId: vpcDeployed.id,
             ingress: sg.getInboundRules(),
             egress: sg.getOutboundRules(),
+            tags: variables.GetTagWithResourceName(sg.getName())
         })
         this.AddResource(sg.getName(), securityGroupDeployed);
     }
+
 
     public deploy(vpc: Vpc): void {
         // Deploiement du VPC
@@ -203,8 +234,51 @@ export class AwsVpcRepository implements VpcRepository{
             }
         }
 
-        // for (let [key, value] of this.resourceMap) {
-        //     console.log(key);
-        // }
+        /** Test Service Discovery */
+        const deployedVpc = this.GetDeployedResource(vpc.getName());
+        const serviceWorkadventure = new aws.servicediscovery.PrivateDnsNamespace("workadventure", {
+            name: "workadventure",
+            description: "A namespace for workadventure services",
+            vpc: deployedVpc.id,
+        });
+
+        this.AddResource("service-workadventure", serviceWorkadventure);
+
+        /** Test EFS */
+        const efs = new aws.efs.FileSystem("efs-workadventure", {
+            encrypted: true,
+            tags: {
+                Name: "efs-workadventure",
+                Owner: "RICI"
+            }
+        });
+
+        const deployedSubnet = this.GetDeployedResource("public-a");
+        const deployedSG = this.GetDeployedResource("default-sg");
+
+        const publicAMountTarget = new aws.efs.MountTarget("publicAMountTarget", {
+            fileSystemId: efs.id,
+            subnetId: deployedSubnet.id,
+            securityGroups: [deployedSG]
+        });
+
+        this.AddResource("efs-workadventure", efs);
+
+        // EC2 pour monter l'EFS et copier le fichier ejabberd.template.yml
+        
+        // const keyPair = new aws.ec2.KeyPair("keypair", {
+        //     publicKey: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKH0xK5oup7Sr0pLwYU4FOhV3pGT3r2TY6lkWHdwSBru terraform"
+        // });
+
+        // const mountEFS = new aws.ec2.Instance("mountEFS", {
+        //     ami: "ami-05b5a865c3579bbc4",
+        //     instanceType: "t2.micro",
+        //     associatePublicIpAddress: true,
+        //     keyName: keyPair.keyName,
+        //     vpcSecurityGroupIds: deployedSG.id,
+        //     subnetId: deployedSubnet.id,
+        //     tags: variables.defaultTags
+        // });
+        /** Fin test */
     }
 }

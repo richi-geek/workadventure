@@ -5,12 +5,12 @@ services:
     ports:
       - "80:80"
     environment:
-      - PUSHER_URL=https://${PUSHER_HOST}
-      - UPLOADER_URL=https://${UPLOADER_HOST}
-      - EMBEDLY_KEY=${EMBEDLY_KEY}
-      - ENABLE_CHAT_UPLOAD=${ENABLE_CHAT_UPLOAD}
-      - EJABBERD_DOMAIN=${EJABBERD_DOMAIN}
-      - EJABBERD_WS_URI=${EJABBERD_WS_URI}
+      - PUSHER_URL=https://${PUSHER_HOST} # https://play.workadventure.aws.ocho.ninja
+      - UPLOADER_URL=https://${UPLOADER_HOST} # https://uploader.workadventure.aws.ocho.ninja
+      #- EMBEDLY_KEY=${EMBEDLY_KEY}
+      - ENABLE_CHAT_UPLOAD=${ENABLE_CHAT_UPLOAD} # true
+      - EJABBERD_DOMAIN=${EJABBERD_DOMAIN} # ejabberd.workadventure.aws.ocho.ninja
+      - EJABBERD_WS_URI=${EJABBERD_WS_URI} # wss://ejabberd.{{ appli_domain_workadventure }}:5443/ws
     # labels:
     #   traefik.enable: "true"
     #   traefik.http.routers.chat.rule: "Host(`${CHAT_HOST}`)"

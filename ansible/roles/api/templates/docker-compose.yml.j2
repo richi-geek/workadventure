@@ -6,34 +6,34 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - PLAY_URL=https://${FRONT_HOST}
-      - SECRET_JITSI_KEY
-      - ENABLE_FEATURE_MAP_EDITOR
-      - SECRET_KEY
-      #- ADMIN_API_TOKEN
+      - PLAY_URL=https://${FRONT_HOST} # https://play.workadventure.aws.ocho.ninja
+      #- SECRET_JITSI_KEY # (X) pas nécessaire si on n'a pas de serveur jitsi
+      #- ENABLE_FEATURE_MAP_EDITOR # (X) n'existe pas dans .env
+      - SECRET_KEY # ricirici
+      #- ADMIN_API_TOKEN -- uniquement si on utilise un serveur "admin"
       #- ADMIN_API_URL
-      - TURN_SERVER
-      - TURN_USER
-      - TURN_PASSWORD
-      - TURN_STATIC_AUTH_SECRET
-      - STUN_SERVER
-      - JITSI_URL
-      - JITSI_ISS
-      - BBB_URL
-      - BBB_SECRET
-      - MAX_PER_GROUP
-      - STORE_VARIABLES_FOR_LOCAL_MAPS
+      #- TURN_SERVER # (X) pas nécessaire si on n'a pas de serveur coturn
+      #- TURN_USER # (X) ""
+      #- TURN_PASSWORD # (X) ""
+      #- TURN_STATIC_AUTH_SECRET # (X) ""
+      #- STUN_SERVER # (X) "" stun
+      - JITSI_URL # meet.jit.si
+      #- JITSI_ISS # (X)
+      - BBB_URL # https://test-install.blindsidenetworks.com/bigbluebutton/
+      - BBB_SECRET # 8cd8ef52e8e101574e400365b55e11a6
+      - MAX_PER_GROUP # 4
+      - STORE_VARIABLES_FOR_LOCAL_MAPS # true
       - REDIS_HOST=redis
-      - PROMETHEUS_AUTHORIZATION_TOKEN
-      - MAP_STORAGE_URL=map-storage:50053
-      - PUBLIC_MAP_STORAGE_URL=https://${MAP_STORAGE_HOST}
-      - PLAYER_VARIABLES_MAX_TTL
-      - EJABBERD_API_URI
-      - EJABBERD_DOMAIN=${EJABBERD_DOMAIN}
-      - EJABBERD_USER=${EJABBERD_USER}
-      - EJABBERD_PASSWORD=${EJABBERD_PASSWORD}
-      - ENABLE_CHAT
-      - ENABLE_CHAT_UPLOAD
+      # - PROMETHEUS_AUTHORIZATION_TOKEN # pas de prometheus
+      - MAP_STORAGE_URL=map-storage:50053 # ?
+      - PUBLIC_MAP_STORAGE_URL=https://${MAP_STORAGE_HOST} # https://map-storage.workadventure.aws.ocho.ninja
+      - PLAYER_VARIABLES_MAX_TTL # -1
+      - EJABBERD_API_URI # wss://ejabberd.workadventure.aws.ocho.ninja:5443/ws
+      - EJABBERD_DOMAIN=${EJABBERD_DOMAIN} # ejabberd.workadventure.aws.ocho.ninja
+      - EJABBERD_USER=${EJABBERD_USER} # admin
+      - EJABBERD_PASSWORD=${EJABBERD_PASSWORD} # mySecretPassword
+      - ENABLE_CHAT # true
+      - ENABLE_CHAT_UPLOAD # true
     # labels:
     #   traefik.enable: "true"
     #   traefik.http.routers.back.rule: "Host(`${BACK_HOST}`)"
@@ -44,4 +44,4 @@ services:
     #   traefik.http.routers.back-ssl.service: "back"
     #   traefik.http.routers.back-ssl.tls: "true"
     #   traefik.http.routers.back-ssl.tls.certresolver: "myresolver"
-    restart: ${RESTART_POLICY}
+    # restart: ${RESTART_POLICY} # pas utilisé dans ECS

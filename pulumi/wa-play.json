@@ -1,0 +1,122 @@
+[
+    {
+        "name": "play",
+        "image": "thecodingmachine/workadventure-play:v1.15.12",
+        "essential": true,
+        "portMappings": [{
+            "name": "play",
+            "containerPort": 3000,
+            "hostPort": 3000
+        }],
+        "dockerLabels": {
+            "traefik.http.routers.play.rule": "Host(`play.workadventure.aws.ocho.ninja`)",
+            "traefik.enable": "true"
+        },
+        "logConfiguration": {
+            "logDriver": "awslogs",
+            "options": {
+                "awslogs-group": "/ecs/WorkAdventure",
+                "awslogs-region": "eu-west-3",
+                "awslogs-stream-prefix": "play"
+            }
+        },
+        "environment": [
+            {
+                "name": "DEBUG_MODE",
+                "value": "false"
+            },
+            {
+                "name": "JITSI_URL",
+                "value": "meet.jit.si"
+            },
+            {
+                "name": "JITSI_PRIVATE_MODE",
+                "value": "false"
+            },
+            {
+                "name": "PUSHER_URL",
+                "value": "https://play.workadventure.aws.ocho.ninja"
+            },
+            {
+                "name": "ICON_URL",
+                "value": "https://icon.workadventure.aws.ocho.ninja"
+            },
+            {
+                "name": "SKIP_RENDER_OPTIMIZATIONS",
+                "value": "false"
+            },
+            {
+                "name": "MAX_PER_GROUP",
+                "value": "4"
+            },
+            {
+                "name": "MAX_USERNAME_LENGTH",
+                "value": "10"
+            },
+            {
+                "name": "DISABLE_ANONYMOUS",
+                "value": "false"
+            },
+            {
+                "name": "DISABLE_NOTIFICATIONS",
+                "value": "false"
+            },
+            {
+                "name": "SECRET_KEY",
+                "value": "ricirici"
+            },
+            {
+                "name": "API_URL",
+                "value": "back.workadventure:50051"
+            },
+            {
+                "name": "FRONT_URL",
+                "value": "https://play.workadventure.aws.ocho.ninja"
+            },
+            {
+                "name": "CHAT_URL",
+                "value": "https://chat.workadventure.aws.ocho.ninja"
+            },
+            {
+                "name": "PUBLIC_MAP_STORAGE_URL",
+                "value": "https://map-storage.workadventure.aws.ocho.ninja"
+            },
+            {
+                "name": "START_ROOM_URL",
+                "value": "/_/global/richi-geek.github.io/my-map/map.tmj"
+            },
+            {
+                "name": "ENABLE_CHAT",
+                "value": "true"
+            },
+            {
+                "name": "ENABLE_CHAT_UPLOAD",
+                "value": "true"
+            },
+            {
+                "name": "ENABLE_CHAT_ONLINE_LIST",
+                "value": "true"
+            },
+            {
+                "name": "ENABLE_CHAT_DISCONNECTED_LIST",
+                "value": "true"
+            },
+            {
+                "name": "UPLOADER_URL",
+                "value": "https://uploader.workadventure.aws.ocho.ninja"
+            },
+            {
+                "name": "EJABBERD_JWT_SECRET",
+                "value": "MyJwtSecret"
+            },
+            {
+                "name": "EJABBERD_DOMAIN",
+                "value": "ejabberd.workadventure.aws.ocho.ninja"
+            },
+            {
+                "name": "ENABLE_REPORT_ISSUES_MENU",
+                "value": "false"
+            }
+        ]
+    }
+]

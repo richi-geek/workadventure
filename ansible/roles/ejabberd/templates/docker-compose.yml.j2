@@ -6,9 +6,9 @@ services:
       - "5443:5443"
     environment:
       - CTL_ON_CREATE=register ${EJABBERD_USER} ${EJABBERD_DOMAIN} ${EJABBERD_PASSWORD}
-      - JWT_SECRET=${EJABBERD_JWT_SECRET}
-      - EJABBERD_DOMAIN=${EJABBERD_DOMAIN}
-      - EJABBERD_USER=${EJABBERD_USER}
-      - EJABBERD_PASSWORD=${EJABBERD_PASSWORD}
-    volumes:
+      - JWT_SECRET=${EJABBERD_JWT_SECRET} # MyJwtSecret
+      - EJABBERD_DOMAIN=${EJABBERD_DOMAIN} # ejabberd.workadventure.aws.ocho.ninja
+      - EJABBERD_USER=${EJABBERD_USER} # admin
+      - EJABBERD_PASSWORD=${EJABBERD_PASSWORD} # mySecretPassword
+    volumes: # a ajouter ?
       - ./ejabberd.template.yml:/opt/ejabberd/conf/ejabberd.template.yml
