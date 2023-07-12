@@ -7,10 +7,6 @@
             "containerPort": 8080,
             "hostPort": 8080
         }],
-        "dockerLabels": {
-            "traefik.http.routers.icon.rule": "Host(`icon.workadventure.aws.ocho.ninja`)",
-            "traefik.enable": "true"
-        },
         "logConfiguration": {
             "logDriver": "awslogs",
             "options": {

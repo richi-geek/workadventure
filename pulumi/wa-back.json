@@ -1,7 +1,7 @@
 [
     {
         "name": "back",
-        "image": "thecodingmachine/workadventure-back:v1.15.12",
+        "image": "thecodingmachine/workadventure-back:v1.16.2",
         "essential": true,
         "portMappings": [
             {
@@ -10,10 +10,6 @@
                 "hostPort": 8080
             }
         ],
-        "dockerLabels": {
-            "traefik.http.routers.back.rule": "Host(`api.workadventure.aws.ocho.ninja`)",
-            "traefik.enable": "true"
-        },
         "logConfiguration": {
             "logDriver": "awslogs",
             "options": {
@@ -26,6 +22,10 @@
             {
                 "name": "PLAY_URL",
                 "value": "https://play.workaventure.aws.ocho.ninja"
+            },
+            {
+                "name": "ENABLE_MAP_EDITOR",
+                "value": "true"
             },
             {
                 "name": "SECRET_KEY",
@@ -57,7 +57,11 @@
             },
             {
                 "name": "MAP_STORAGE_URL",
-                "value": "map-storage:50053"
+                "value": "map-storage.workadventure:50053"
+            },
+            {
+                "name": "INTERNAL_MAP_STORAGE_URL",
+                "value": "http://map-storage.workadventure:3000"
             },
             {
                 "name": "PUBLIC_MAP_STORAGE_URL",
@@ -69,7 +73,7 @@
             },
             {
                 "name": "EJABBERD_API_URI",
-                "value": "https://ejabberd.workadventure.aws.ocho.ninja/api"
+                "value": "http://ejabberd.workadventure/api"
             },
             {
                 "name": "EJABBERD_DOMAIN",

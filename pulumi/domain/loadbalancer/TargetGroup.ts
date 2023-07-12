@@ -3,8 +3,9 @@ import { Vpc } from "../vpc/vpc";
 export type Protocol = "GENEVE" | "HTTP" | "HTTPS" | "TCP" | "TCP_UDP" | "TLS" | "UDP";
 export type TargetType = "instance" | "ip" | "alb" | "lambda";
 export interface TargetGroupHealthCheck {
-    matcher: string;
-    path: string;
+    enabled: boolean;
+    matcher?: string;
+    path?: string;
 }
 
 export class TargetGroup {

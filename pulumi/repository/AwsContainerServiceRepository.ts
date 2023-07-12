@@ -3,48 +3,9 @@ import * as variables from "../variables";
 import * as fs from "fs";
 import { IContainerServiceRepository } from "./IContainerServiceRepository";
 import { Cluster } from "../domain/container-service/cluster";
-import { Container } from "../domain/container-service/Container";
 
 export class AwsContainerServiceRepository implements IContainerServiceRepository {
     private CreateRoles() {
-        const traefikRole = new aws.iam.Role("traefikRole", {
-            name: "traefikRole",
-            assumeRolePolicy: JSON.stringify({
-                Version: "2012-10-17",
-                Statement: [{
-                    Action: "sts:AssumeRole",
-                    Effect: "Allow",
-                    Sid: "",
-                    Principal: {
-                        Service: "ecs-tasks.amazonaws.com",
-                    },
-                }],
-            }),
-            tags: variables.GetTagWithResourceName("traefikRole")
-        });
-    
-        const traefikPolicyDocument = aws.iam.getPolicyDocumentOutput({
-            statements: [{
-                sid: "main",
-                actions: [
-                    "ecs:ListClusters",
-                    "ecs:DescribeClusters",
-                    "ecs:ListTasks",
-                    "ecs:DescribeTasks",
-                    "ecs:DescribeContainerInstances",
-                    "ecs:DescribeTaskDefinition",
-                    "ec2:DescribeInstances"
-                ],
-                resources: ["*"],
-            }],
-        });
-    
-        const traefikPolicy = new aws.iam.RolePolicy("traefikPolicy", {
-            name: "traefikPolicy",
-            role: traefikRole.id,
-            policy: traefikPolicyDocument.apply(traefikPolicyDocument => traefikPolicyDocument.json)
-        });
-    
         const ecsRole = new aws.iam.Role("ecsRole", {
             name: "ecsRole",
             assumeRolePolicy: JSON.stringify({
@@ -71,7 +32,7 @@ export class AwsContainerServiceRepository implements IContainerServiceRepositor
             policyArn: "arn:aws:iam::aws:policy/SecretsManagerReadWrite"
         });
 
-        return {traefikRole, ecsRole};
+        return ecsRole;
     }
 
     private CreateLogGroup() {
@@ -97,65 +58,74 @@ export class AwsContainerServiceRepository implements IContainerServiceRepositor
         return taskDefinition;
     }
 
-    private createService(nom: string, serviceDiscovery: boolean, deployedCluster: any, taskDefinition: any, desiredCount: number, subnetIds: any[], securityGroupIds: any[], listeners: any[], serviceConnect?: any) {
+    private CreateServiceDiscovery(nom: string, serviceNamespace: any) {
+        const serviceDiscovery = new aws.servicediscovery.Service(nom, {
+            name: nom,
+            namespaceId: serviceNamespace.id,
+            dnsConfig: {
+                namespaceId: serviceNamespace.id,
+                dnsRecords: [{
+                    ttl: 60,
+                    type: "A",
+                }],
+                routingPolicy: "MULTIVALUE",
+            },
+            healthCheckCustomConfig: {
+                failureThreshold: 1,
+            },
+        });
+
+        return serviceDiscovery;
+    }
+
+    private createService(nom: string, isInTargetGroup: boolean, deployedCluster: any, taskDefinition: any, desiredCount: number, subnetIds: any[], securityGroupIds: any[], listeners: any[], serviceNamespace: any, targetGroup?: any) {
         var deployedService;
-        switch (serviceDiscovery) {
-            case true:
-                const serviceDiscovery = new aws.servicediscovery.Service(nom, {
-                    name: nom,
-                    namespaceId: serviceConnect.id,
-                    dnsConfig: {
-                        namespaceId: serviceConnect.id,
-                        dnsRecords: [{
-                            ttl: 60,
-                            type: "A",
-                        }],
-                        routingPolicy: "MULTIVALUE",
-                    },
-                    healthCheckCustomConfig: {
-                        failureThreshold: 1,
-                    },
+        const serviceDiscovery = this.CreateServiceDiscovery(nom, serviceNamespace);
+        if(isInTargetGroup) {
+            deployedService = new aws.ecs.Service(nom, {
+                name: nom,
+                launchType: "FARGATE",
+                cluster: deployedCluster.id,
+                taskDefinition: taskDefinition.arn,
+                desiredCount: desiredCount,
+                enableEcsManagedTags: true,
+                propagateTags: "SERVICE",
+                serviceRegistries: {
+                    registryArn: serviceDiscovery.arn,
+                },
+                loadBalancers: [{
+                    targetGroupArn: targetGroup.arn,
+                    containerName: nom,
+                    containerPort: targetGroup.port,
+                }],
+                networkConfiguration: {
+                    subnets: subnetIds,
+                    securityGroups: securityGroupIds
+                },
+                tags: variables.defaultTags
+            }, {
+                dependsOn: listeners,
+            });
+        } else {
+            deployedService = new aws.ecs.Service(nom, {
+                name: nom,
+                launchType: "FARGATE",
+                cluster: deployedCluster.id,
+                taskDefinition: taskDefinition.arn,
+                desiredCount: desiredCount,
+                enableEcsManagedTags: true,
+                propagateTags: "SERVICE",
+                serviceRegistries: {
+                    registryArn: serviceDiscovery.arn,
+                },
+                networkConfiguration: {
+                    subnets: subnetIds,
+                    securityGroups: securityGroupIds
+                },
+                tags: variables.defaultTags
+            }, {
+                dependsOn: listeners,
                 });
-                deployedService = new aws.ecs.Service(nom, {
-                    name: nom,
-                    launchType: "FARGATE",
-                    cluster: deployedCluster.id,
-                    taskDefinition: taskDefinition.arn,
-                    desiredCount: desiredCount,
-                    enableEcsManagedTags: true,
-                    propagateTags: "SERVICE",
-                    serviceRegistries: {
-                        registryArn: serviceDiscovery.arn,
-                    },
-                    networkConfiguration: {
-                        subnets: subnetIds,
-                        securityGroups: securityGroupIds
-                    },
-                    tags: variables.defaultTags
-                }, {
-                    dependsOn: listeners,
-                });
-                break;
-        
-            default:
-                deployedService = new aws.ecs.Service(nom, {
-                    name: nom,
-                    launchType: "FARGATE",
-                    cluster: deployedCluster.id,
-                    taskDefinition: taskDefinition.arn,
-                    desiredCount: desiredCount,
-                    enableEcsManagedTags: true,
-                    propagateTags: "SERVICE",
-                    
-                    networkConfiguration: {
-                        subnets: subnetIds,
-                        securityGroups: securityGroupIds
-                    },
-                    tags: variables.defaultTags
-                }, {
-                    dependsOn: listeners,
-                });
-                break;
         }
 
         return deployedService;
@@ -163,16 +133,14 @@ export class AwsContainerServiceRepository implements IContainerServiceRepositor
 
     public deploy({
         cluster, 
-        container, 
-        targetGroups: [targetGroupTraefik, targetGroupTraefikAPI],
-        listeners: [traefikListener, traefikAPIListener, httpsListener], 
+        targetGroups: [whoTargetGroup, playTargetGroup, chatTargetGroup, iconTargetGroup, mapStorageTargetGroup, ejabberdTargetGroup], 
+        listeners: [whoListener, httpListener, httpsListener], 
         subnets: [subnetPrivateA, subnetPrivateB], 
         securityGroup,
         serviceConnect,
         deployedEfs
     }: {
         cluster: Cluster, 
-        container: Container, 
         targetGroups: any[], 
         listeners: any[], 
         subnets: any[], 
@@ -181,26 +149,24 @@ export class AwsContainerServiceRepository implements IContainerServiceRepositor
         deployedEfs: any
     }): void {
         const subnets = [subnetPrivateA, subnetPrivateB];
-        
-        const {traefikRole, ecsRole} = this.CreateRoles();
+        const ecsRole = this.CreateRoles();
         this.CreateLogGroup();
 
 
         /** Creation des TaskDefinitions a partir des fichiers JSON */
-        const traefikTemplate = fs.readFileSync('traefik.json').toString();
-        
-        // Services WorkAdventure
-        const backContainerDefinition = fs.readFileSync("wa-back.json").toString();
-        const chatContainerDefinition = fs.readFileSync("wa-chat.json").toString();
+       
         const ejabberdContainerDefinition = fs.readFileSync("wa-ejabberd.json").toString();
+        const playContainerDefinition = fs.readFileSync("wa-play.json").toString();
+        const chatContainerDefinition = fs.readFileSync("wa-chat.json").toString();
+        const backContainerDefinition = fs.readFileSync("wa-back.json").toString();
         const iconContainerDefinition = fs.readFileSync("wa-icon.json").toString();
         const mapStorageContainerDefinition = fs.readFileSync("wa-map-storage.json").toString();
-        const playContainerDefinition = fs.readFileSync("wa-play.json").toString();
         const redisContainerDefinition = fs.readFileSync("wa-redis.json").toString();
         const uploaderContainerDefinition = fs.readFileSync("wa-uploader.json").toString();
 
-        const ejabberdTaskDefinition = new aws.ecs.TaskDefinition(container.getName() + "-ejabberd", {
-            family: container.getName() + "-ejabberd",
+        // On n'utilise pas la fonction CreateTaskDefinition car on déclare un montage EFS
+        const ejabberdTaskDefinition = new aws.ecs.TaskDefinition("ejabberd-task-definition", {
+            family: "ejabberd-task-definition",
             cpu: "1024",
             memory: "2048",
             containerDefinitions: ejabberdContainerDefinition,
@@ -216,21 +182,21 @@ export class AwsContainerServiceRepository implements IContainerServiceRepositor
                     }
                 }
             ],
-            tags: variables.GetTagWithResourceName(container.getName() + "-ejabberd")
+            tags: variables.GetTagWithResourceName("ejabberd-task-definition")
         });
 
-        const backTaskDefinition = this.CreateTaskDefinition(container.getName() + "-back", backContainerDefinition, ecsRole, "2048", "4096");
-        const playTaskDefinition = this.CreateTaskDefinition(container.getName() + "-play", playContainerDefinition, ecsRole, "2048", "4096");
+        /** Conteneur bidon */
+        const whoContainerDefinition = fs.readFileSync("who.json").toString();
+        const whoTaskDefinition = this.CreateTaskDefinition("who-task-definition", whoContainerDefinition, ecsRole);
 
-        const uploaderTaskDefinition = this.CreateTaskDefinition(container.getName() + "-uploader", uploaderContainerDefinition, ecsRole, "1024", "2048");
-        const mapStorageTaskDefinition = this.CreateTaskDefinition(container.getName() + "-map-storage", mapStorageContainerDefinition, ecsRole, "1024", "2048");
-
-        const redisTaskDefinition = this.CreateTaskDefinition(container.getName() + "-redis", redisContainerDefinition, ecsRole, "256", "512");
-        const chatTaskDefinition = this.CreateTaskDefinition(container.getName() + "-chat", chatContainerDefinition, ecsRole, "256", "512");
-        const iconTaskDefinition = this.CreateTaskDefinition(container.getName() + "-icon", iconContainerDefinition, ecsRole, "256", "512");
-        
-        // const whoTaskDefinition = this.CreateTaskDefinition(container.getName() + "-who", whoContainerDefinition, ecsRole);
-
+        const playTaskDefinition = this.CreateTaskDefinition("play-task-definition", playContainerDefinition, ecsRole, "1024", "2048");
+        const backTaskDefinition = this.CreateTaskDefinition("back-task-definition", backContainerDefinition, ecsRole, "1024", "2048");
+        const uploaderTaskDefinition = this.CreateTaskDefinition("uploader-task-definition", uploaderContainerDefinition, ecsRole, "1024", "2048");
+        const mapStorageTaskDefinition = this.CreateTaskDefinition("map-storage-task-definition", mapStorageContainerDefinition, ecsRole, "1024", "2048");
+        const redisTaskDefinition = this.CreateTaskDefinition("redis-task-definition", redisContainerDefinition, ecsRole, "256", "512");
+        const chatTaskDefinition = this.CreateTaskDefinition("chat-task-definition", chatContainerDefinition, ecsRole, "256", "512");
+        const iconTaskDefinition = this.CreateTaskDefinition("icon-task-definition", iconContainerDefinition, ecsRole, "256", "512");
+         
         /** Creation du cluster et les services */
         const deployedCluster = new aws.ecs.Cluster(cluster.getName(), {
             name: cluster.getName(),
@@ -242,54 +208,29 @@ export class AwsContainerServiceRepository implements IContainerServiceRepositor
         });
      
         deployedCluster.name.apply(name => {
-            const traefikContainerDefinition = traefikTemplate.replace("${ecs_cluster_name}", name);
-            const traefikTaskDefinition = new aws.ecs.TaskDefinition(container.getName() + "-traefik", {
-                family: container.getName() + "-traefik",
-                cpu: "512",
-                memory: "1024",
-                containerDefinitions: traefikContainerDefinition,
-                networkMode: container.getNetworkMode(),
-                requiresCompatibilities: ["FARGATE"],
-                executionRoleArn: ecsRole.arn,
-                taskRoleArn: traefikRole.arn,
-                tags: variables.defaultTags,
-            });
+            const playService = this.createService("play", true, deployedCluster, playTaskDefinition, 3, subnets, [securityGroup], [httpListener, httpsListener, ecsRole], serviceConnect, playTargetGroup);
+            const chatService = this.createService("chat", true, deployedCluster, chatTaskDefinition, 1, subnets, [securityGroup], [httpListener, httpsListener, ecsRole], serviceConnect, chatTargetGroup);
+            const iconService = this.createService("icon", true, deployedCluster, iconTaskDefinition, 1, subnets, [securityGroup], [httpListener, httpsListener, ecsRole], serviceConnect, iconTargetGroup);
+            const ejabberdService = this.createService("ejabberd", true, deployedCluster, ejabberdTaskDefinition, 1, subnets, [securityGroup], [httpListener, httpsListener, ecsRole], serviceConnect, ejabberdTargetGroup);
+            const mapStorageService = this.createService("map-storage", true, deployedCluster, mapStorageTaskDefinition, 1, subnets, [securityGroup], [httpListener, httpsListener, ecsRole], serviceConnect, mapStorageTargetGroup);
+            const backService = this.createService("back", false, deployedCluster, backTaskDefinition, 1, subnets, [securityGroup], [httpListener, httpsListener, ecsRole], serviceConnect);
+            const redisService = this.createService("redis", false, deployedCluster, redisTaskDefinition, 1, subnets, [securityGroup], [httpListener, httpsListener, ecsRole], serviceConnect);
+            const uploaderService = this.createService("uploader", false, deployedCluster, uploaderTaskDefinition, 1, subnets, [securityGroup], [httpListener, httpsListener, ecsRole], serviceConnect);
 
-            const traefikServiceDiscovery = new aws.servicediscovery.Service("traefik", {
-                name: "traefik",
-                namespaceId: serviceConnect.id,
-                dnsConfig: {
-                    namespaceId: serviceConnect.id,
-                    dnsRecords: [{
-                        ttl: 60,
-                        type: "A",
-                    }],
-                    routingPolicy: "MULTIVALUE",
-                },
-                healthCheckCustomConfig: {
-                    failureThreshold: 1,
-                },
-            });
-
-            const traefikService = new aws.ecs.Service("traefik", {
-                name: "traefik",
+            /** Conteneur bidon */
+            const whoService = new aws.ecs.Service("who", {
+                name: "who",
                 launchType: "FARGATE",
                 cluster: deployedCluster.id,
-                taskDefinition: traefikTaskDefinition.arn,
+                taskDefinition: whoTaskDefinition.arn,
                 desiredCount: 1,
                 enableEcsManagedTags: true,
                 propagateTags: "SERVICE",
-                serviceRegistries: {
-                    registryArn: traefikServiceDiscovery.arn,
-                },
+               
                 loadBalancers: [{
-                    targetGroupArn: targetGroupTraefik.arn,
-                    containerName: "traefik",
+                    targetGroupArn: whoTargetGroup.arn,
+                    containerName: "who",
                     containerPort: 80,
-                }, {
-                    targetGroupArn: targetGroupTraefikAPI.arn,
-                    containerName: "traefik",
-                    containerPort: 8080,
                 }],
                 networkConfiguration: {
                     subnets: [
@@ -300,25 +241,8 @@ export class AwsContainerServiceRepository implements IContainerServiceRepositor
                 },
                 tags: variables.defaultTags
             }, {
-                dependsOn: [traefikListener, traefikAPIListener, httpsListener, ecsRole],
+                dependsOn: [whoListener, ecsRole],
             });
-
-            const ejabberdService = this.createService("ejabberd", true, deployedCluster, ejabberdTaskDefinition, 1, subnets, [securityGroup], [traefikListener, traefikAPIListener, httpsListener, ecsRole], serviceConnect);
-            
-            const playService = this.createService("play", true, deployedCluster, playTaskDefinition, 1, subnets, [securityGroup], [traefikListener, traefikAPIListener, httpsListener, ecsRole], serviceConnect);
-            const backService = this.createService("back", true, deployedCluster, backTaskDefinition, 1, subnets, [securityGroup], [traefikListener, traefikAPIListener, httpsListener, ecsRole], serviceConnect);
-
-            
-            const chatService = this.createService("chat", true, deployedCluster, chatTaskDefinition, 1, subnets, [securityGroup], [traefikListener, traefikAPIListener, httpsListener, ecsRole], serviceConnect);
-            const iconService = this.createService("icon", true, deployedCluster, iconTaskDefinition, 1, subnets, [securityGroup], [traefikListener, traefikAPIListener, httpsListener, ecsRole], serviceConnect);
-            const mapStorageService = this.createService("map-storage", true, deployedCluster, mapStorageTaskDefinition, 1, subnets, [securityGroup], [traefikListener, traefikAPIListener, httpsListener, ecsRole], serviceConnect);
-            const redisService = this.createService("redis", true, deployedCluster, redisTaskDefinition, 1, subnets, [securityGroup], [traefikListener, traefikAPIListener, httpsListener, ecsRole], serviceConnect);
-            const uploaderService = this.createService("uploader", true, deployedCluster, uploaderTaskDefinition, 1, subnets, [securityGroup], [traefikListener, traefikAPIListener, httpsListener, ecsRole], serviceConnect);
-
-            // const whoService = this.createService("whoService", deployedCluster, whoTaskDefinition, 1, subnets, [securityGroup], listeners);
-            
-               
         })
-        
     }
 }

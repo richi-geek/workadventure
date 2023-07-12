@@ -1,17 +1,13 @@
 [
     {
         "name": "play",
-        "image": "thecodingmachine/workadventure-play:v1.15.12",
+        "image": "thecodingmachine/workadventure-play:v1.16.2",
         "essential": true,
         "portMappings": [{
             "name": "play",
             "containerPort": 3000,
             "hostPort": 3000
         }],
-        "dockerLabels": {
-            "traefik.http.routers.play.rule": "Host(`play.workadventure.aws.ocho.ninja`)",
-            "traefik.enable": "true"
-        },
         "logConfiguration": {
             "logDriver": "awslogs",
             "options": {
@@ -32,6 +28,10 @@
             {
                 "name": "JITSI_PRIVATE_MODE",
                 "value": "false"
+            },
+            {
+                "name": "ENABLE_MAP_EDITOR",
+                "value": "true"
             },
             {
                 "name": "PUSHER_URL",
@@ -116,6 +116,26 @@
             {
                 "name": "ENABLE_REPORT_ISSUES_MENU",
                 "value": "false"
+            },
+            {
+                "name": "ROOM_API_PORT",
+                "value": "50051"
+            },
+            {
+                "name": "ROOM_API_SECRET_KEY",
+                "value": "ricirici"
+            },
+            {
+                "name": "GRPC_VERBOSITY",
+                "value": "INFO"
+            },
+            {
+                "name": "GRPC_TRACE",
+                "value": "all"
+            },
+            {
+                "name": "MAP_STORAGE_PATH_PREFIX",
+                "value": "/map-storage"
             }
         ]
     }

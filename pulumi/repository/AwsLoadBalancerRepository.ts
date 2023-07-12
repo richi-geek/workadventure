@@ -40,6 +40,7 @@ export class AwsLoadBalancerRepository implements ILoadBalancerRepository{
         if (securityGroupIds != null && subnetIds != null) {
             let loadBalancerDeployed = new aws.lb.LoadBalancer(lb.getName(), {
                 name: lb.getName(),
+                idleTimeout: 4000,
                 loadBalancerType: lb.getLoadBalancerType(),
                 securityGroups: securityGroupIds,
                 subnets: subnetIds,
@@ -57,6 +58,17 @@ export class AwsLoadBalancerRepository implements ILoadBalancerRepository{
 
         const workAdventureUrl = "workadventure.aws.ocho.ninja";
         const lbDeployed = this.GetDeployedResource(lb.getName());
+        const rootUrl = new aws.route53.Record(workAdventureUrl, {
+            zoneId: workadventureDNSZone.then(workadventureDNSZone => workadventureDNSZone.zoneId),
+            name: workAdventureUrl,
+            type: "A",
+            aliases: [{
+                name: lbDeployed.dnsName,
+                zoneId: lbDeployed.zoneId,
+                evaluateTargetHealth: false
+            }]
+        })
+        
         const urlPrefixes = [
             "play",
             "chat",
@@ -80,7 +92,7 @@ export class AwsLoadBalancerRepository implements ILoadBalancerRepository{
                     evaluateTargetHealth: true
                 }]
             })
-        })
+        });
     }
 
     private CreateTargetGroup(targetGroup: TargetGroup, vpcRepository: AwsVpcRepository): void {
@@ -89,6 +101,7 @@ export class AwsLoadBalancerRepository implements ILoadBalancerRepository{
             name: targetGroup.getName(),
             port: targetGroup.getPort(),
             protocol: targetGroup.getProtocol(),
+            //protocolVersion: "HTTP2",
             vpcId: deployedVpc.id,
             targetType: targetGroup.getTargetType(),
             healthCheck: targetGroup.getHealthCheck(),
@@ -144,6 +157,24 @@ export class AwsLoadBalancerRepository implements ILoadBalancerRepository{
             dependsOn: certValidation,
         });
         this.AddResource(listener.getName(), deployedListener);
+
+        // Fonction qui genere les ListenerRules à partir d'un array.
+        const listenerRules: string[] = ["chat", "icon", "map-storage", "ejabberd"];
+        for (let rule of listenerRules) {
+            const deployedTargetGroup = this.GetDeployedResource(rule + "-target-group");
+            const listenerRule = new aws.lb.ListenerRule(rule + "ListenerRule", {
+                listenerArn: deployedListener.arn,
+                actions: [{
+                    type: "forward",
+                    targetGroupArn: deployedTargetGroup.arn,
+                }],
+                conditions: [{
+                    hostHeader: {
+                        values: [rule + ".workadventure.aws.ocho.ninja"]
+                    }
+                }],
+            });
+        }
     }
 
     private CreateListenerForward(listener: Listener): void {
@@ -202,7 +233,6 @@ export class AwsLoadBalancerRepository implements ILoadBalancerRepository{
                 }
             }
         });
-
     }
 }
  
