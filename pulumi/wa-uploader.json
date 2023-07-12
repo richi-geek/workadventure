@@ -1,16 +1,12 @@
 [
     {
         "name": "uploader",
-        "image": "thecodingmachine/workadventure-uploader:v1.15.12",
+        "image": "thecodingmachine/workadventure-uploader:v1.16.2",
         "essential": true,
         "portMappings": [{
             "containerPort": 8080,
             "hostPort": 8080
         }],
-        "dockerLabels": {
-            "traefik.http.routers.uploader.rule": "Host(`uploader.workadventure.aws.ocho.ninja`)",
-            "traefik.enable": "true"
-        },
         "logConfiguration": {
             "logDriver": "awslogs",
             "options": {

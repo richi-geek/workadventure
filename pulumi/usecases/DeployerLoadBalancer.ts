@@ -7,9 +7,10 @@ import { IVpcRepository } from "../repository/IVpcRepository";
 import { Certificate } from "../domain/loadbalancer/Certificate";
 
 /**
- * Use case qui déploie WorkAdventure dans un vpc donné
- * @param vpcRepository le repository à utiliser pour le deploiement
- * @param sss l'objet métier VPC qui contient l'infrastructure nécessaire pour heberger WorkAdventure
+ * Use case qui déploie la partie load-balancing de WorkAdventure (lb, target groups, listeners, etc)
+ * @param loadBalancerRepository le repository à utiliser pour le deploiement
+ * @param vpcRepository repository du VPC utilisé pour récupérer les resources déployés
+ * @param vpc l'objet métier VPC qui contient l'infrastructure nécessaire pour heberger WorkAdventure
  */
 export function DeployerLoadBalancer(loadBalancerRepository: ILoadBalancerRepository, vpcRepository: IVpcRepository, vpc: Vpc) {
     const loadBalancer = new LoadBalancer("loadbalancer-workadventure", "application");
@@ -24,17 +25,23 @@ export function DeployerLoadBalancer(loadBalancerRepository: ILoadBalancerReposi
     const subnets = vpc.getSubnets().filter(subnet => subnet.isPublic())
     subnets.forEach(subnet => loadBalancer.addSubnet(subnet));
 
-    const traefikTargetGroup = new TargetGroup("traefik-target-group", 80, "HTTP", vpc, "ip", {matcher: "200-202,404", path: "/"});
-    const traefikAPITargetGroup = new TargetGroup("traefikAPI-target-group", 8080, "HTTP", vpc, "ip", {matcher: "200-202,300-302", path: "/"});
-    
-    /** Pour tester si l'app marhce bien sans traefik */
-    // const waTargetGroup = new TargetGroup("wa-target-group", 3000, "HTTP", vpc, "ip", {matcher: "200-202", path: "/"});
-    // const waListener = new Listener("wa-listener", loadBalancer, 3000, "HTTP", {
-    //     type: "forward",
-    //     targetGroup: waTargetGroup
-    // });
+    // Conteneur bidon qu'on accede avec le port 8080
+    const whoTargetGroup = new TargetGroup("who-target-group", 80, "HTTP", vpc, "ip", {enabled: true, matcher: "200-499", path: "/"});
+    const whoListener = new Listener("who-listener", loadBalancer, 8080, "HTTP", {
+        type: "forward",
+        targetGroup: whoTargetGroup
+    });
 
-    const traefikListener = new Listener("traefik-listener", loadBalancer, 80, "HTTP", {
+    // WorkAdventure (port HTTPS 443 et HTTP 80)
+    // Target Groups
+    const playTargetGroup = new TargetGroup("play-target-group", 3000, "HTTP", vpc, "ip", {enabled: true, matcher: "200-499", path: "/"});
+    const chatTargetGroup = new TargetGroup("chat-target-group", 80, "HTTP", vpc, "ip", {enabled: true, matcher: "200-499", path: "/"});
+    const iconTargetGroup = new TargetGroup("icon-target-group", 8080, "HTTP", vpc, "ip", {enabled: true, matcher: "200-499", path: "/"});
+    const mapStorageTargetGroup = new TargetGroup("map-storage-target-group", 3000, "HTTP", vpc, "ip", {enabled: true, matcher: "200-499", path: "/"});
+    const ejabberdTargetGroup = new TargetGroup("ejabberd-target-group", 5443, "HTTP", vpc, "ip", {enabled: true, matcher: "200-499", path: "/"});
+
+    // Listeners
+    const httpListener = new Listener("http-listener", loadBalancer, 80, "HTTP", {
         type: "redirect",
         redirect: {
             port: "443",
@@ -42,25 +49,18 @@ export function DeployerLoadBalancer(loadBalancerRepository: ILoadBalancerReposi
             statusCode: "HTTP_301",
         }
     });
-
-    const traefikAPIListener = new Listener("traefikAPI-listener", loadBalancer, 8080, "HTTP", {
-        type: "forward",
-        targetGroup: traefikAPITargetGroup
-    });
-
-    // Problematique car on peut associer une seule validation au listener
-    // TODO : voir si on peut valider plusieurs certificats dans une validation
-    const certificate = new Certificate("*.workadventure.aws.ocho.ninja", "DNS");
     const httpsListener = new Listener("https-listener", loadBalancer, 443, "HTTPS", {
         type: "forward",
-        targetGroup: traefikTargetGroup
+        targetGroup: playTargetGroup
     });
+
+    const certificate = new Certificate("*.workadventure.aws.ocho.ninja", "DNS");
     httpsListener.addCertificate(certificate);
 
     loadBalancerRepository.deploy(
         vpcRepository,
         [loadBalancer], 
-        [traefikTargetGroup, traefikAPITargetGroup], 
-        [traefikListener, traefikAPIListener, httpsListener]
+        [whoTargetGroup, playTargetGroup, chatTargetGroup, iconTargetGroup, mapStorageTargetGroup, ejabberdTargetGroup],
+        [whoListener, httpListener, httpsListener],
     );
 }
