@@ -211,7 +211,7 @@ export class AwsContainerServiceRepository implements IContainerServiceRepositor
             const playService = this.createService("play", true, deployedCluster, playTaskDefinition, 3, subnets, [securityGroup], [httpListener, httpsListener, ecsRole], serviceConnect, playTargetGroup);
             const chatService = this.createService("chat", true, deployedCluster, chatTaskDefinition, 1, subnets, [securityGroup], [httpListener, httpsListener, ecsRole], serviceConnect, chatTargetGroup);
             const iconService = this.createService("icon", true, deployedCluster, iconTaskDefinition, 1, subnets, [securityGroup], [httpListener, httpsListener, ecsRole], serviceConnect, iconTargetGroup);
-            const ejabberdService = this.createService("ejabberd", true, deployedCluster, ejabberdTaskDefinition, 1, subnets, [securityGroup], [httpListener, httpsListener, ecsRole], serviceConnect, ejabberdTargetGroup);
+            //const ejabberdService = this.createService("ejabberd", true, deployedCluster, ejabberdTaskDefinition, 1, subnets, [securityGroup], [httpListener, httpsListener, ecsRole], serviceConnect, ejabberdTargetGroup);
             const mapStorageService = this.createService("map-storage", true, deployedCluster, mapStorageTaskDefinition, 1, subnets, [securityGroup], [httpListener, httpsListener, ecsRole], serviceConnect, mapStorageTargetGroup);
             const backService = this.createService("back", false, deployedCluster, backTaskDefinition, 1, subnets, [securityGroup], [httpListener, httpsListener, ecsRole], serviceConnect);
             const redisService = this.createService("redis", false, deployedCluster, redisTaskDefinition, 1, subnets, [securityGroup], [httpListener, httpsListener, ecsRole], serviceConnect);
